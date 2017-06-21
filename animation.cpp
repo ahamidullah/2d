@@ -16,7 +16,8 @@ Animation_Info animations[NUM_ANIMATIONS];
 SDL_Rect
 anim_get_frame(Animation *a)
 {
-	if (!SDL_TICKS_PASSED(SDL_GetTicks(), a->frame_timer + a->info.frame_delay))
+	//if (!SDL_TICKS_PASSED(SDL_GetTicks(), a->frame_timer + a->info.frame_delay))
+	if (!SDL_TICKS_PASSED(SDL_GetTicks(), a->frame_timer + 1000))
 		return a->info.frames[a->cur_frame];
 	SDL_Rect frame = a->info.frames[a->cur_frame];
 	++a->cur_frame;

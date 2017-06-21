@@ -29,9 +29,10 @@ do
 			echo "		processing sprite $sprite"
 			spritew=$(identify -format "%[w]" "$sprite")
 			spriteh=$(identify -format "%[h]" "$sprite")
-			ncols=2
-			x=$(expr "$anim_i" / "$ncols" \* "$spritew")
-			y=$(expr $(expr "$anim_i" + "$ncols" - 1) / "$ncols" \* "$spriteh")
+			ncols=4
+			echo "$anim_i"
+			x=$(expr $(expr "$anim_i" % "$ncols") \* "$spritew")
+			y=$(expr "$anim_i" / "$ncols" \* "$spriteh")
 
 			printf '%d,%d,%d,%d,%d\n' "${delays[anim_i]}" "${x}" ${y} ${spritew} ${spriteh} >> "$anim_fpath"
 			sprites[anim_i]="$sprite"
@@ -46,6 +47,6 @@ do
 
 	nrows=$(expr $(expr "$anim_i" + "$ncols" - 1) / "$ncols")
 	echo "making sheet $(basename "$sheet_fpath")"
-	montage-im6 -geometry +"$ncols"+"$nrows" ${sprites[*]} -format png24 "$sheet_fpath"
+	montage -geometry +"$ncols"+"$nrows" ${sprites[*]} -format png24 "$sheet_fpath"
 done
 

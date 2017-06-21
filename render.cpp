@@ -62,8 +62,8 @@ render()
 {
 	SDL_RenderClear(renderer);
 	for (int i = 0; i < num_render_commands; ++i)
-		SDL_RenderCopy(renderer, render_queue[i].texture, NULL, NULL);
-		//SDL_RenderCopy(renderer, render_queue[i].texture, &render_queue[i].tex_src, &render_queue[i].screen_dest);
+		//SDL_RenderCopy(renderer, render_queue[i].texture, NULL, NULL);
+		SDL_RenderCopy(renderer, render_queue[i].texture, &render_queue[i].tex_src, &render_queue[i].screen_dest);
 	SDL_RenderPresent(renderer);
 	num_render_commands = 0;
 }
