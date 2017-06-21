@@ -26,6 +26,8 @@ anim_get_frame(Animation *a)
 	return frame;
 }
 
+//asdff/
+
 Animation
 anim_get(Anim_ID id)
 {
