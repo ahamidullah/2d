@@ -44,7 +44,7 @@ asset_load_image(Image_ID id)
 		return NULL;
 	}
 
-	return render_make_texture(ih.w, ih.h, ih.bytes_per_row, pixels);
+	return render_make_texture(ih, pixels);
 }
 
 // Pretty inefficient, loading piecemeal every time it's requested. Should load in bulk and cache eventually.

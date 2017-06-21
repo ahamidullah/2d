@@ -133,6 +133,7 @@ main(int, char **)
 		ih.w = img->w;
 		ih.h = img->h;
 		ih.bytes_per_row = img->pitch;
+		ih.pixel_format = img->format->format;
 		fwrite(&ih, sizeof(ih), 1, asset_file);
 		fwrite(img->pixels, img->pitch * img->h, 1, asset_file);
 

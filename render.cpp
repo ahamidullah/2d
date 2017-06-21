@@ -16,12 +16,12 @@ Render_Command render_queue[500];
 const char *sprite_path = "assets/sprites/";
 
 SDL_Texture *
-render_make_texture(int w, int h, int pitch, void *pixels)
+render_make_texture(Image_Header ih, void *pixels)
 {
 	SDL_Texture *tex;
-	if (!(tex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_STATIC, w, h)))
+	if (!(tex = SDL_CreateTexture(renderer, ih.pixel_format, SDL_TEXTUREACCESS_STATIC, ih.w, ih.h)))
 		zabort("%s", SDL_GetError());
-	if (SDL_UpdateTexture(tex, NULL, pixels, pitch))
+	if (SDL_UpdateTexture(tex, NULL, pixels, ih.bytes_per_row))
 		zabort("%s", SDL_GetError());
 		//SDL_Surface *img;
 		//if (!(img = IMG_Load("assets/animations/mc/mc.png"))) {

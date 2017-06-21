@@ -14,6 +14,7 @@ struct Frame_Info {
 
 struct Image_Header {
 	int w, h, bytes_per_row;
+	uint32_t pixel_format;
 };
 
 #endif
