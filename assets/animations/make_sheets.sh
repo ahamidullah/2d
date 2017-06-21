@@ -23,6 +23,7 @@ do
 
 		echo $(ls -l "$anim"/*.png | wc -l) >> "$anim_fpath"
 
+		frame_i=0
 		for sprite in "$anim"/*
 		do
 			if [[ ! -e "$sprite" || ${sprite: -4} != ".png" ]]; then continue; fi
@@ -30,13 +31,13 @@ do
 			spritew=$(identify -format "%[w]" "$sprite")
 			spriteh=$(identify -format "%[h]" "$sprite")
 			ncols=4
-			echo "$anim_i"
 			x=$(expr $(expr "$anim_i" % "$ncols") \* "$spritew")
 			y=$(expr "$anim_i" / "$ncols" \* "$spriteh")
 
-			printf '%d,%d,%d,%d,%d\n' "${delays[anim_i]}" "${x}" ${y} ${spritew} ${spriteh} >> "$anim_fpath"
+			printf '%d,%d,%d,%d,%d\n' "${delays[frame_i]}" "${x}" ${y} ${spritew} ${spriteh} >> "$anim_fpath"
 			sprites[anim_i]="$sprite"
 			let anim_i+=1
+			let frame_i+=1
 		done
 
 	done
