@@ -48,9 +48,11 @@ asset_load_image(Image_ID id)
 }
 
 // Pretty inefficient, loading piecemeal every time it's requested. Should load in bulk and cache eventually.
-void
-asset_load_anim(Anim_ID id, Animation_Info *anim)
+Animation_Info
+asset_load_anim(Anim_ID id)
 {
+	Animation_Info anim;
+
 	SDL_RWops *rw = SDL_RWFromFile("assets.ahh", "rb");
 	DEFER(SDL_RWclose(rw));
 
@@ -59,20 +61,21 @@ asset_load_anim(Anim_ID id, Animation_Info *anim)
 	size_t num_read = SDL_RWread(rw, &ah, sizeof(ah), 1);
 	if (num_read != 1)
 		zerror("Could not read animation header %d from asset file", id);
-	anim->texture = asset_load_image((Image_ID)ah.image_id);
-	anim->num_frames = ah.num_frames;
-	Frame_Info *fi = (Frame_Info *)malloc(sizeof(Frame_Info) * anim->num_frames); // @TEMP
-	num_read = SDL_RWread(rw, fi, sizeof(Frame_Info), anim->num_frames);
-	if (num_read != anim->num_frames)
+	anim.texture = asset_load_image((Image_ID)ah.image_id);
+	anim.num_frames = ah.num_frames;
+	Frame_Info *fi = (Frame_Info *)malloc(sizeof(Frame_Info) * anim.num_frames); // @TEMP
+	num_read = SDL_RWread(rw, fi, sizeof(Frame_Info), anim.num_frames);
+	if (num_read != anim.num_frames)
 		zerror("Could not read frame info of animation %d from asset file", id);
 
-	anim->frames = (SDL_Rect *)malloc(sizeof(SDL_Rect) * anim->num_frames); // @TEMP
-	anim->frame_delay = fi[0].delay; // Assuming they are all the same for now...
-	for (int i = 0; i < anim->num_frames; ++i) {
-		anim->frames[i].x = fi[i].x;
-		anim->frames[i].y = fi[i].y;
-		anim->frames[i].w = fi[i].w;
-		anim->frames[i].h = fi[i].h;
+	anim.frames = (SDL_Rect *)malloc(sizeof(SDL_Rect) * anim.num_frames); // @TEMP
+	anim.frame_delay = fi[0].delay; // Assuming they are all the same for now...
+	for (int i = 0; i < anim.num_frames; ++i) {
+		anim.frames[i].x = fi[i].x;
+		anim.frames[i].y = fi[i].y;
+		anim.frames[i].w = fi[i].w;
+		anim.frames[i].h = fi[i].h;
 	}
+	return anim;
 }
 

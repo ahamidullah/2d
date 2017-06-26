@@ -1,6 +1,6 @@
 struct Animation_Info {
 	int num_frames;
-	SDL_Rect *frames; // @TODO: use a variable sized struct to keep everything inline?
+	SDL_Rect *frames;
 	unsigned frame_delay;
 	SDL_Texture *texture;
 };
@@ -18,15 +18,13 @@ anim_get_frame(Animation *a)
 {
 	if (!SDL_TICKS_PASSED(SDL_GetTicks(), a->frame_timer + a->info.frame_delay))
 		return a->info.frames[a->cur_frame];
-	SDL_Rect frame = a->info.frames[a->cur_frame];
 	++a->cur_frame;
 	if (a->cur_frame == a->info.num_frames)
 		a->cur_frame = 0;
-	a->frame_timer = SDL_GetTicks(); // @TODO: Wrong. We might not draw the first frame.
+	SDL_Rect frame = a->info.frames[a->cur_frame];
+	a->frame_timer = SDL_GetTicks();
 	return frame;
 }
-
-//asdff/
 
 Animation
 anim_get(Anim_ID id)
@@ -34,8 +32,8 @@ anim_get(Anim_ID id)
 	Animation_Info *i = &animations[id];
 	Animation a;
 	memcpy(&a.info, i, sizeof(Animation_Info));
-	a.cur_frame = 0;
-	a.frame_timer = SDL_GetTicks();
+	a.cur_frame = -1; // Make sure we always get the first frame on the initial call to anim_get_frame().
+	a.frame_timer = 0; // Should always be less than SDL_GetTicks() I think. Otherwise, broken.
 	return a;
 }
 
@@ -114,13 +112,13 @@ load_anim_from_file(Anim_ID id, const char *fname)
 }
 */
 
-void asset_load_anim(Anim_ID id, Animation_Info *anim);
+Animation_Info asset_load_anim(Anim_ID id);
 
 void
 anim_init()
 {
 	for (int i = 0; i < NUM_ANIMATIONS; ++i)
-		asset_load_anim((Anim_ID)i, &animations[i]);
+		animations[i] = asset_load_anim((Anim_ID)i);
 /*
 #define LOAD_ANIMS
 #include "animation.h"

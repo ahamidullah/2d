@@ -1,7 +1,7 @@
 SDL_Renderer *renderer;
 
-float resolution_scale;
 float meters_to_pixels = 0.0f;
+float scale_meters_to_pixels = 1.0f;
 
 struct Render_Command {
 	SDL_Texture *texture;
@@ -23,12 +23,6 @@ render_make_texture(Image_Header ih, void *pixels)
 		zabort("%s", SDL_GetError());
 	if (SDL_UpdateTexture(tex, NULL, pixels, ih.bytes_per_row))
 		zabort("%s", SDL_GetError());
-		//SDL_Surface *img;
-		//if (!(img = IMG_Load("assets/animations/mc/mc.png"))) {
-			//printf("IMG_Load failed! IMG_GetError: %s\n", IMG_GetError());
-			//return NULL;
-		//}
-		//SDL_Texture *tex = SDL_CreateTextureFromSurface(renderer, img);
 	return tex;
 }
 
@@ -44,11 +38,11 @@ render_init(SDL_Window *w)
 
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
 	// Compute meters to pixels.
-	// Aspect ratio we are going to design against.
-	Vec2i logical_resolution = { 1280, 720 };
+	// Aspect aspect ratio we are going to design against.
+	Vec2i logical_ratio = { 16, 9 };
 	// Initial value of meters to pixels.
-	resolution_scale = minf((float)screen_dim.x /  logical_resolution.x, (float)screen_dim.y / logical_resolution.y);
-	printf("%f\n", resolution_scale);
+	meters_to_pixels = scale_meters_to_pixels * minf((float)screen_dim.x /  logical_ratio.x, (float)screen_dim.y / logical_ratio.y);
+	printf("%f\n", meters_to_pixels);
 }
 
 void
@@ -62,7 +56,6 @@ render()
 {
 	SDL_RenderClear(renderer);
 	for (int i = 0; i < num_render_commands; ++i)
-		//SDL_RenderCopy(renderer, render_queue[i].texture, NULL, NULL);
 		SDL_RenderCopy(renderer, render_queue[i].texture, &render_queue[i].tex_src, &render_queue[i].screen_dest);
 	SDL_RenderPresent(renderer);
 	num_render_commands = 0;
