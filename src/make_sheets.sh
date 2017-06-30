@@ -1,14 +1,14 @@
 #!/bin/bash
 ncols=4
-for sheet in *
+for sheet in ../assets/animations/*
 do
-	sheet_fpath="$sheet"/"$sheet".png
-	anim_fpath="$sheet"/"$sheet".anim
+	sheet_fpath="$sheet"/$(basename "$sheet").png
+	anim_fpath="$sheet"/$(basename "$sheet").anim
 
 	if [ ! -d "$sheet" ]; then continue; fi
 	echo "processing sheet $sheet"
-	echo ["$sheet"] > "$anim_fpath"
-	echo $(pwd)/"$sheet_fpath" >> "$anim_fpath"
+	echo [$(basename "$sheet")] > "$anim_fpath"
+	echo $(readlink -f "$sheet_fpath") >> "$anim_fpath"
 
 	anim_i=0
 	for anim in "$sheet"/*
@@ -48,6 +48,6 @@ do
 
 	nrows=$(expr $(expr "$anim_i" + "$ncols" - 1) / "$ncols")
 	echo "making sheet $(basename "$sheet_fpath")"
-	montage -geometry +"$ncols"+"$nrows" ${sprites[*]} -format png24 "$sheet_fpath"
+	montage -define png:color-type=6 -geometry +"$ncols"+"$nrows" ${sprites[*]} "$sheet_fpath"
 done
 

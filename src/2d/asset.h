@@ -1,7 +1,7 @@
 #ifndef __ASSET_H__
 #define __ASSET_H__
 
-#include "asset_packer.h"
+#include "../asset_packer/asset_packer.h"
 
 enum Anim_ID {
 	mc_idle_anim,

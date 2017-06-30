@@ -52,21 +52,25 @@ int
 main(int, char **)
 {
 	FILE *anim_h_file, *asset_file;
-	anim_h_file = fopen("asset.h", "w");
+	anim_h_file = fopen("../2d/asset.h", "w+");
+	if (!anim_h_file) {
+		printf("Failed to open anim_h_file - %s\n", strerror(errno));
+		return 1;
+	}
 
 	fprintf(anim_h_file, "#ifndef __ASSET_H__\n");
 	fprintf(anim_h_file, "#define __ASSET_H__\n\n");
-	fprintf(anim_h_file, "#include \"asset_packer.h\"\n\n");
+	fprintf(anim_h_file, "#include \"../asset_packer/asset_packer.h\"\n\n");
 
 	fprintf(anim_h_file, "enum Anim_ID {\n");
 
-	asset_file = fopen("assets.ahh", "wb");
+	asset_file = fopen("../../assets/assets.ahh", "wb");
 	if (!asset_file) {
 		printf("Failed to open asset file - %s\n", strerror(errno));
 		return 1;
 	}
 
-	const char *anim_base_path = "assets/animations";
+	const char *anim_base_path = "../../assets/animations";
 	Dir_Read root_dr;
 	struct dirent *ent;
 	std::string fpath{anim_base_path};

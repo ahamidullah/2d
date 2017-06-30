@@ -1,5 +1,3 @@
-//int pixels_per_meter = ;
-
 uint64_t ticks_per_sec;
 uint64_t last_sim_time = 0;
 
@@ -62,24 +60,6 @@ parse_tmx()
 }
 */
 
-/*
-Box_Collider_ID
-make_box_collider(int x, int y, int w, int h)
-{
-	Collider_ID id = num_colliders;
-	colliders[num_colliders++] = { x, y, w, h };
-	return id;
-}
-
-Poly_Collider_ID
-make_box_collider(int x, int y, int w, int h)
-{
-	Collider_ID id = num_colliders;
-	colliders[num_colliders++] = { x, y, w, h };
-	return id;
-}
-*/
-
 void
 sim_init()
 {
@@ -127,7 +107,7 @@ sim(bool *keys, Player *p)
 		}
 	}
 */
-	render_add_command(p->animation.info.texture, anim_get_frame(&p->animation), get_dest(p));
+	render_add_command(p->animation.info.texture, anim_get_frame(&p->animation), p->transform.position, p->height, p->animation.info.frames[0].w / p->animation.info.frames[0].h);
 }
 
 void

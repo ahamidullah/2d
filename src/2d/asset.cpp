@@ -1,21 +1,30 @@
-#include "asset_packer.h"
 #include "asset.h"
+#include "errno.h"
 
-Asset_Header
-asset_load_header()
+Asset_Header asset_header;
+
+void
+read_assets(long offset, int origin, size_t sz, size_t count, void *mem, FILE *fp)
 {
-	Asset_Header ah;
-	SDL_RWops *rw = SDL_RWFromFile("assets.ahh", "rb");
-	DEFER(SDL_RWclose(rw));
-	if (rw == NULL)
-		zabort("Could not open asset file - %s", SDL_GetError());
-	int64_t len = SDL_RWseek(rw, -sizeof(Asset_Header), RW_SEEK_END);
-	if (len < 0)
-		zabort("Could not seek in asset file - %s", SDL_GetError());
-	size_t num_read = SDL_RWread(rw, &ah, sizeof(ah), 1);
-	if (num_read != 1)
-		zabort("Could not read asset file");
-	return ah;
+	if (fseek(fp, offset, origin) != 0)
+		zabort("Could not seek in asset file - %s", strerror(errno));
+	if (fread(mem, sz, count, fp) != count)
+		zabort("Could not read all elements requested from the asset file - %s", strerror(errno));
+}
+
+FILE *
+open_asset_file()
+{
+	FILE *fp = fopen("../../assets/assets.ahh", "rb");
+	if (!fp)
+		zabort("Could not open asset file - %s", strerror(errno));
+}
+
+void
+asset_init()
+{
+	FILE *fp = open_asset_file();
+	read_assets(-sizeof(asset_header), SEEK_END, sizeof(asset_header), 1, &asset_header, fp);
 }
 
 SDL_Texture *render_make_texture(int w, int h, int pitch, void *pixels);
@@ -24,25 +33,15 @@ SDL_Texture *render_make_texture(int w, int h, int pitch, void *pixels);
 SDL_Texture *
 asset_load_image(Image_ID id)
 {
-	SDL_RWops *rw = SDL_RWFromFile("assets.ahh", "rb");
-	DEFER(SDL_RWclose(rw));
-
-	SDL_RWseek(rw, asset_header.image_table[id], RW_SEEK_SET);
+	FILE *fp = open_asset_file();
+	DEFER(fclose(fp));
 	Image_Header ih;
-	size_t num_read = SDL_RWread(rw, &ih, sizeof(ih), 1);
-	if (num_read != 1) {
-		zerror("Could not read image header %d from asset file", id);
-		return NULL;
-	}
+	read_assets(asset_header.image_table[id], SEEK_SET, sizeof(ih), 1, &ih, fp);
 
 	size_t total_bytes = ih.h * ih.bytes_per_row;
-	char *pixels = (char *)malloc(total_bytes);
+	char *pixels = (char *)malloc(total_bytes); // @TEMP
 	DEFER(free(pixels));
-	num_read =  SDL_RWread(rw, pixels, 1, total_bytes);
-	if (num_read != total_bytes) {
-		zerror("Could not read pixels from image %d from asset file", id);
-		return NULL;
-	}
+	read_assets(0, SEEK_CUR, 1, total_bytes, pixels, fp);
 
 	return render_make_texture(ih, pixels);
 }
@@ -51,22 +50,17 @@ asset_load_image(Image_ID id)
 Animation_Info
 asset_load_anim(Anim_ID id)
 {
+	FILE *fp = open_asset_file();
+	DEFER(fclose(fp));
 	Animation_Info anim;
-
-	SDL_RWops *rw = SDL_RWFromFile("assets.ahh", "rb");
-	DEFER(SDL_RWclose(rw));
-
-	SDL_RWseek(rw, asset_header.animation_table[id], RW_SEEK_SET);
 	Anim_Header ah;
-	size_t num_read = SDL_RWread(rw, &ah, sizeof(ah), 1);
-	if (num_read != 1)
-		zerror("Could not read animation header %d from asset file", id);
-	anim.texture = asset_load_image((Image_ID)ah.image_id);
+
+	read_assets(asset_header.animation_table[id], SEEK_SET, sizeof(ah), 1, &ah, fp);
+
 	anim.num_frames = ah.num_frames;
 	Frame_Info *fi = (Frame_Info *)malloc(sizeof(Frame_Info) * anim.num_frames); // @TEMP
-	num_read = SDL_RWread(rw, fi, sizeof(Frame_Info), anim.num_frames);
-	if (num_read != anim.num_frames)
-		zerror("Could not read frame info of animation %d from asset file", id);
+	read_assets(0, SEEK_CUR, sizeof(Frame_Info), anim.num_frames, fi, fp);
+	anim.texture = asset_load_image((Image_ID)ah.image_id);
 
 	anim.frames = (SDL_Rect *)malloc(sizeof(SDL_Rect) * anim.num_frames); // @TEMP
 	anim.frame_delay = fi[0].delay; // Assuming they are all the same for now...

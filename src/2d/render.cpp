@@ -1,7 +1,7 @@
 SDL_Renderer *renderer;
 
 float meters_to_pixels = 0.0f;
-float scale_meters_to_pixels = 1.0f;
+float scale = 1.0f;
 
 struct Render_Command {
 	SDL_Texture *texture;
@@ -41,7 +41,7 @@ render_init(SDL_Window *w)
 	// Aspect aspect ratio we are going to design against.
 	Vec2i logical_ratio = { 16, 9 };
 	// Initial value of meters to pixels.
-	meters_to_pixels = scale_meters_to_pixels * minf((float)screen_dim.x /  logical_ratio.x, (float)screen_dim.y / logical_ratio.y);
+	meters_to_pixels = minf((float)screen_dim.x /  logical_ratio.x, (float)screen_dim.y / logical_ratio.y);
 	printf("%f\n", meters_to_pixels);
 }
 
@@ -62,11 +62,12 @@ render()
 }
 
 void
-render_add_command(SDL_Texture *tex, SDL_Rect src, SDL_Rect dest)
+//render_add_command(SDL_Texture *tex, SDL_Rect src, SDL_Rect dest)
+render_add_command(SDL_Texture *tex, SDL_Rect tex_src, Vec2f pos, float height, float width_to_height)
 {
 	render_queue[num_render_commands].texture = tex;
-	render_queue[num_render_commands].tex_src = src;
-	render_queue[num_render_commands].screen_dest = dest;
+	render_queue[num_render_commands].tex_src = tex_src;
+	render_queue[num_render_commands].screen_dest = {pos.x, pos.y, height*meters_to_pixels*width_to_height*scale, height*meters_to_pixels*scale};
 	++num_render_commands;
 }
 
