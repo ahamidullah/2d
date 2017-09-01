@@ -36,7 +36,10 @@ asset_load_image(Image_ID id)
 	FILE *fp = open_asset_file();
 	DEFER(fclose(fp));
 	Image_Header ih;
-	read_assets(asset_header.image_table[id], SEEK_SET, sizeof(ih), 1, &ih, fp);
+	Asset_Offset ofs = asset_header.image_table[id];
+	if (ofs == -1)
+		zabort("Unable to load requested file %d\n", id);
+	read_assets(ofs, SEEK_SET, sizeof(ih), 1, &ih, fp);
 
 	size_t total_bytes = ih.h * ih.bytes_per_row;
 	char *pixels = (char *)malloc(total_bytes); // @TEMP
@@ -57,10 +60,11 @@ asset_load_anim(Anim_ID id)
 
 	read_assets(asset_header.animation_table[id], SEEK_SET, sizeof(ah), 1, &ah, fp);
 
+	anim.id = id;
 	anim.num_frames = ah.num_frames;
 	Frame_Info *fi = (Frame_Info *)malloc(sizeof(Frame_Info) * anim.num_frames); // @TEMP
 	read_assets(0, SEEK_CUR, sizeof(Frame_Info), anim.num_frames, fi, fp);
-	anim.texture = asset_load_image((Image_ID)ah.image_id);
+	anim.texture = asset_load_image((Image_ID)ah.spritesheet_id);
 
 	anim.frames = (SDL_Rect *)malloc(sizeof(SDL_Rect) * anim.num_frames); // @TEMP
 	anim.frame_delay = fi[0].delay; // Assuming they are all the same for now...

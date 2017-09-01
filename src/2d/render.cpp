@@ -1,6 +1,7 @@
 SDL_Renderer *renderer;
 
 float meters_to_pixels = 0.0f;
+//float 
 float scale = 1.0f;
 
 struct Render_Command {
@@ -8,6 +9,8 @@ struct Render_Command {
 	SDL_Rect tex_src;
 	SDL_Rect screen_dest;
 };
+
+SDL_Rect the_collider;
 
 // @TEMP
 size_t num_render_commands = 0;
@@ -54,9 +57,18 @@ render_quit()
 void
 render()
 {
+	SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x00);
+
 	SDL_RenderClear(renderer);
 	for (int i = 0; i < num_render_commands; ++i)
 		SDL_RenderCopy(renderer, render_queue[i].texture, &render_queue[i].tex_src, &render_queue[i].screen_dest);
+
+	SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+
+	SDL_Rect s = { 500, 200, 100, 100 };
+	SDL_RenderDrawRect(renderer, &s);
+	SDL_RenderDrawRect(renderer, &the_collider);
+
 	SDL_RenderPresent(renderer);
 	num_render_commands = 0;
 }
@@ -67,7 +79,7 @@ render_add_command(SDL_Texture *tex, SDL_Rect tex_src, Vec2f pos, float height, 
 {
 	render_queue[num_render_commands].texture = tex;
 	render_queue[num_render_commands].tex_src = tex_src;
-	render_queue[num_render_commands].screen_dest = {pos.x, pos.y, height*meters_to_pixels*width_to_height*scale, height*meters_to_pixels*scale};
+	render_queue[num_render_commands].screen_dest = { pos.x*meters_to_pixels, pos.y*meters_to_pixels, height*meters_to_pixels*width_to_height*scale, height*meters_to_pixels*scale };
 	++num_render_commands;
 }
 

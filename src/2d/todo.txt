@@ -1,0 +1,2 @@
+- Pack the animation frames tightly and use offsets to place the image correctly.
+- Add ability to get string value from generated asset ids for logging/debugging.

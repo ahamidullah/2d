@@ -3,13 +3,14 @@
 
 #include "../asset_packer/asset_packer.h"
 
-enum Anim_ID {
+enum Anim_ID : Asset_ID {
 	mc_idle_anim,
 	mc_walk_anim,
 	NUM_ANIMATIONS
 };
 
-enum Image_ID {
+enum Image_ID : Asset_ID {
+	tiles_img,
 	mc_img,
 	NUM_IMAGES
 };

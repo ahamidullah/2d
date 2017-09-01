@@ -5,7 +5,6 @@
 #include <assert.h>
 #include <limits.h>
 
-#include "xml.h"
 #include "math.h"
 #include "asset.h"
 
@@ -16,12 +15,11 @@ Vec2i screen_dim = { 1920, 1080 };
 #include "animation.cpp"
 #include "asset.cpp"
 
-typedef SDL_Rect Box_Collider;
-typedef size_t Collider_ID;
-typedef size_t Sprite_ID;
+typedef uint32_t Collider_ID;
 
 struct Transform {
 	Vec2f position;
+	Vec2f velocity;
 	float scale;
 };
 
@@ -34,6 +32,7 @@ struct Player {
 	float height;
 	Transform transform;
 	Animation animation;
+	Collider_ID collider_id;
 };
 
 struct Level {
@@ -128,67 +127,13 @@ tweak_init()
 	}
 
 	int fd;
-	if ((fd = inotify_init()) < 0)
-		zabort("Could not inotify_init - %s", strerror(errno));
-	if (inotify_add_watch(fd, ".", IN_OPEN) < 0)
-		zabort("Could not inotify_add_watch - %s", strerror(errno));
-	/*
-
-char buf[sizeof(struct inotify_event) + PATH_MAX];
-	size_t len;
-		while (true) {
-	     if ((len = read(fd, buf, sizeof(buf))) == 0)
-	     	continue;
-         int i = 0;
-         printf("here\n");
-             while (i < len) {
-                 struct inotify_event *ie = (struct inotify_event*) &buf[i];
-
-                 //printf("event occured for '%s': ", argv[ie->wd]);
-                 if (ie->mask & IN_MODIFY)
-                     printf("%s was modified\n", ie->len ? ie->name : "file");
-                 else if (ie->mask & IN_CREATE)
-                     printf("%s was created\n",  ie->name);
-                 else if (ie->mask & IN_DELETE)
-                     printf("%s was deleted\n",  ie->name);
-                 else if (ie->mask & IN_IGNORED)
-                     printf("%s was ignored\n",  ie->name);
-                 else
-                     printf("unexpected event\n");
-
-                 i += sizeof(struct inotify_event) + ie->len;
-             }
-     }
-	*/
-
 	if ((fd = open(".", O_RDONLY)) < 0)
 		zabort("Could not open the tweak file descriptor - %s", strerror(errno));
-		/*
-	if (fcntl(fd, F_SETOWN, getpid()) == -1)
-		zabort("Could not F_SETOWN the tweak file descriptor - %s", strerror(errno));
-		*/
 	if (fcntl(fd, F_SETSIG, SIGRTMIN+1) == -1)
 		zabort("Could not F_SETSIG the tweak file descriptor - %s", strerror(errno));
 	// VIM creates a new "tweaks.var" file whenever the tweaks.var is edited, so just watch the dir and reload tweaks when the old file is overwritten.
-	if(fcntl(fd, F_NOTIFY, DN_DELETE | DN_MULTISHOT))
+	if (fcntl(fd, F_NOTIFY, DN_DELETE | DN_MULTISHOT))
 		zabort("Could not F_NOTIFY the tweak file descriptor - %s", strerror(errno));
-		/*
-	//if (fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) | O_ASYNC))
-	if (fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) | O_ASYNC))
-		zabort("Could not F_SETFL the tweak file descriptor - %s", strerror(errno));
-
-
-	sigset_t mask;
-	struct sigaction act;
-
-	sigemptyset(&mask);
-	sigaddset(&mask, SIGRTMIN+1);
-
-	act.sa_handler = sigio_handler;
-	act.sa_mask = mask;
-	act.sa_flags = 0;
-	sigaction(SIGRTMIN+1, &act, NULL);
-		*/
 	struct sigaction sa;
 	sa.sa_sigaction = sigio_handler;
 	sigemptyset(&sa.sa_mask);
@@ -208,9 +153,10 @@ main(int, char **)
 
 	Player p;
 	p.animation = anim_get(mc_walk_anim);
-	p.transform = {{250.0f, 250.0f}, 1.5f};
-	p.height = 1.9f;
-	//p.collider = make_collider(p.position, 50.0, 50.0);
+	p.transform = {{0.0f, 0.0f}, 1.0f};
+	p.height = 1.0f;
+	p.transform.velocity = {0.0f, 0.0f};
+	//p.collider_id = make_collider(p.transform.position, { 50.0, 50.0 });
 
 	/*
 	Level l;

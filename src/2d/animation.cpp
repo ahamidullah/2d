@@ -1,4 +1,5 @@
 struct Animation_Info {
+	Anim_ID id;
 	int num_frames;
 	SDL_Rect *frames;
 	unsigned frame_delay;
@@ -11,7 +12,7 @@ struct Animation {
 	uint32_t frame_timer;
 };
 
-Animation_Info animations[NUM_ANIMATIONS];
+Animation_Info animation_infos[NUM_ANIMATIONS];
 
 SDL_Rect
 anim_get_frame(Animation *a)
@@ -29,7 +30,9 @@ anim_get_frame(Animation *a)
 Animation
 anim_get(Anim_ID id)
 {
-	Animation_Info *i = &animations[id];
+	if (id < 0 || id >= NUM_ANIMATIONS)
+		zerror("Could not find animation with id %d", (Asset_ID)id);
+	Animation_Info *i = &animation_infos[id];
 	Animation a;
 	memcpy(&a.info, i, sizeof(Animation_Info));
 	a.cur_frame = -1; // Make sure we always get the first frame on the initial call to anim_get_frame().
@@ -118,7 +121,7 @@ void
 anim_init()
 {
 	for (int i = 0; i < NUM_ANIMATIONS; ++i)
-		animations[i] = asset_load_anim((Anim_ID)i);
+		animation_infos[i] = asset_load_anim((Anim_ID)i);
 /*
 #define LOAD_ANIMS
 #include "animation.h"
